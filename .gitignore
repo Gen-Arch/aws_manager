@@ -61,5 +61,6 @@ Gemfile.lock
 *.csv
 *.log
 .solargraph.yml
+*.yml
 
 
