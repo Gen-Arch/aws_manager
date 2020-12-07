@@ -34,13 +34,13 @@ namespace :get do
 
   desc 'get item'
   task :dynamo do
-    dynamo = DynamoDB.new('InstanceScheduler-ConfigTable-1Z90QQB7IUET', ENV['profile'])
+    dynamo = DynamoDB.new(ENV['table'], ENV['profile'])
     pp dynamo.time?('pre5-scheduler-delay')
   end
 
   desc 'get ec2 list'
   task :ec2_list do
-    dynamo    = DynamoDB.new('InstanceScheduler-ConfigTable-1Z90QQB7IUET', ENV['profile'])
+    dynamo    = DynamoDB.new(ENV['table'], ENV['profile'])
     ec2       = EC2.new(ENV['name'], ENV['profile'])
     userlist  = YAML.load_file('conf/userlist.yml')
     hostlist  = CSV.open("hostlist.csv", "wb")
