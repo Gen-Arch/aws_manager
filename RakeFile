@@ -1,0 +1,92 @@
+require 'yaml'
+require 'csv'
+
+require './lib/ec2.rb'
+require './lib/dynamodb.rb'
+require './lib/route53.rb'
+
+namespace :create do
+  namespace :image do
+    ec2   = EC2.new(ENV['name'], ENV['profile'])
+    hosts = ec2.list
+
+    desc 'create images'
+    task :all => hosts
+    hosts.each do |host|
+      task host do
+        resp = ec2.image(host)
+        next unless resp
+        puts "#{host.ljust(25)}\t=\t\"#{resp.image_id}\""
+      end
+    end
+  end
+end
+
+namespace :get do
+  desc 'get names'
+  task :name do
+    ec2   = EC2.new(ENV['name'], ENV['profile'])
+    ec2.hosts.each do |host, i|
+      #puts "#{host}, #{i.state.name}"
+      puts "#{host}"
+    end
+  end
+
+  desc 'get item'
+  task :dynamo do
+    dynamo = DynamoDB.new('InstanceScheduler-ConfigTable-1Z90QQB7IUET', ENV['profile'])
+    pp dynamo.time?('pre5-scheduler-delay')
+  end
+
+  desc 'get ec2 list'
+  task :ec2_list do
+    dynamo    = DynamoDB.new('InstanceScheduler-ConfigTable-1Z90QQB7IUET', ENV['profile'])
+    ec2       = EC2.new(ENV['name'], ENV['profile'])
+    userlist  = YAML.load_file('conf/userlist.yml')
+    hostlist  = CSV.open("hostlist.csv", "wb")
+
+    hosts = ec2.filter_hosts.map do |host|
+      time   = dynamo.time?(host[:schdule])
+      host   = host.merge(time)
+      users  = userlist[host[:name]] || [""]
+      host   = host.merge({users: users.join("\r\n")})
+    end
+
+    hostlist << hosts.first.keys
+    hosts.each do |host|
+      hostlist << host.values
+    end
+  end
+
+  desc 'get record list'
+  task :record_list do
+    r53 = R53.new(ENV['id'], ENV['profile'])
+
+    records     = r53.target_list
+    recordlist  = CSV.open("recordlist.csv", "wb")
+
+    recordlist << records.first.keys
+
+    records.each do |r|
+      recordlist << r.values
+    end
+  end
+end
+
+namespace :search do
+  desc 'get names'
+  task :ip do
+    name  = ".*"
+    ec2   = EC2.new(name, ENV['profile'])
+    types   = YAML.load_file('conf/iplist.yml')
+    types.each do |type, ips|
+      puts type
+      puts '-' * 20
+      ips.each do |ip|
+        host, i = ec2.host?(ip)
+        puts "#{ip}\t=>\t#{host}"
+      end
+      puts '-' * 20
+    end
+  end
+end
