@@ -40,13 +40,13 @@ namespace :get do
 
   desc 'get ec2 list'
   task :ec2_list do
-    dynamo    = DynamoDB.new(ENV['table'], ENV['profile'])
+    dynamo    = DynamoDB.new(ENV['table'], ENV['profile']) if ENV['table']
     ec2       = EC2.new(ENV['name'], ENV['profile'])
     userlist  = YAML.load_file('conf/userlist.yml')
     hostlist  = CSV.open("hostlist.csv", "wb")
 
     hosts = ec2.filter_hosts.map do |host|
-      time   = dynamo.time?(host[:schdule])
+      time   = ENV['table'] ? dynamo.time?(host[:schdule]) : {}
       host   = host.merge(time)
       users  = userlist[host[:name]] || [""]
       host   = host.merge({users: users.join("\r\n")})
@@ -78,7 +78,8 @@ namespace :search do
   task :ip do
     name  = ".*"
     ec2   = EC2.new(name, ENV['profile'])
-    types   = YAML.load_file('conf/iplist.yml')
+    types = YAML.load_file('conf/iplist.yml')
+
     types.each do |type, ips|
       puts type
       puts '-' * 20

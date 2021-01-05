@@ -61,7 +61,7 @@ class EC2
       tags = airtrip_tags(i.tags)
       name = tags[:name]
 
-      next unless i.state.name == "running"
+      #next unless i.state.name == "running"
       next unless name =~ /#{query}/
       @hosts[name] = i
     end

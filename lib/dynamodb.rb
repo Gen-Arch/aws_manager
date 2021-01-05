@@ -17,15 +17,17 @@ class DynamoDB
   end
 
   def time?(name)
-    return {} unless name
-    return {} if name =~ /^x-/
+    time = { begintime: '', endtime: ''}
+
+    return time unless name
+    return time if name =~ /^x-/
     item = periods?(name)
     item = periods?(item['periods'].first) if item['type'] == 'schedule'
 
-    {
-      begintime: item['begintime'],
-      endtime: item['endtime']
-    }
+    time[:begintime] = item['begintime']
+    time[:endtime]   = item['endtime']
+
+    return time
   end
 
   def items
