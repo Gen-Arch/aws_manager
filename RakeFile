@@ -5,6 +5,8 @@ require './lib/ec2.rb'
 require './lib/dynamodb.rb'
 require './lib/route53.rb'
 
+ENV['profile'] ||= 'awsdev'
+
 namespace :create do
   namespace :image do
     ec2   = EC2.new(ENV['name'], ENV['profile'], ENV['status'])
