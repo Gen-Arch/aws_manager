@@ -7,7 +7,7 @@ require './lib/route53.rb'
 
 namespace :create do
   namespace :image do
-    ec2   = EC2.new(ENV['name'], ENV['profile'])
+    ec2   = EC2.new(ENV['name'], ENV['profile'], ENV['status'])
     hosts = ec2.list
 
     desc 'create images'
@@ -25,7 +25,7 @@ end
 namespace :get do
   desc 'get names'
   task :name do
-    ec2   = EC2.new(ENV['name'], ENV['profile'])
+    ec2   = EC2.new(ENV['name'], ENV['profile'], ENV['status'])
     ec2.hosts.each do |host, i|
       #puts "#{host}, #{i.state.name}"
       puts "#{host}"
@@ -77,7 +77,7 @@ namespace :search do
   desc 'get names'
   task :ip do
     name  = ".*"
-    ec2   = EC2.new(name, ENV['profile'])
+    ec2   = EC2.new(name, ENV['profile'], ENV['status'])
     types = YAML.load_file('conf/iplist.yml')
 
     types.each do |type, ips|

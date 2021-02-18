@@ -2,8 +2,9 @@ require 'time'
 require 'aws-sdk-ec2'
 
 class EC2
-  def initialize(name, profile)
+  def initialize(name, profile, status='running')
     @config = {region: 'ap-northeast-1', profile: profile}
+    @status = status
     @client = Aws::EC2::Client.new(@config)
     @hosts  = {}
     create_hosts(name)
@@ -61,7 +62,7 @@ class EC2
       tags = airtrip_tags(i.tags)
       name = tags[:name]
 
-      next unless i.state.name == "running"
+      next unless i.state.name == @status
       next unless name =~ /#{query}/
       @hosts[name] = i
     end
